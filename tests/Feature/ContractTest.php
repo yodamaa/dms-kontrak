@@ -41,6 +41,43 @@ class ContractTest extends TestCase
         $response->assertSee('Daftar Kontrak');
     }
 
+    public function test_contract_list_is_paginated_server_side()
+    {
+        for ($i = 1; $i <= 15; $i++) {
+            Contract::create([
+                'contract_number' => 'INV/2026/10/' . str_pad($i, 4, '0', STR_PAD_LEFT),
+                'activation_date' => '2026-10-15',
+                'status' => 'pending',
+                'created_by' => $this->staff->id,
+            ]);
+        }
+
+        $response = $this->actingAs($this->staff)->get('/contracts?per_page=10');
+
+        $response->assertStatus(200);
+        $paginator = $response->viewData('contracts');
+        $this->assertInstanceOf(\Illuminate\Contracts\Pagination\LengthAwarePaginator::class, $paginator);
+        $this->assertEquals(15, $paginator->total());
+        $this->assertCount(10, $paginator->items());
+    }
+
+    public function test_contract_list_per_page_is_whitelisted()
+    {
+        for ($i = 1; $i <= 15; $i++) {
+            Contract::create([
+                'contract_number' => 'INV/2026/10/' . str_pad($i, 4, '0', STR_PAD_LEFT),
+                'activation_date' => '2026-10-15',
+                'status' => 'pending',
+                'created_by' => $this->staff->id,
+            ]);
+        }
+
+        $response = $this->actingAs($this->staff)->get('/contracts?per_page=999');
+
+        $paginator = $response->viewData('contracts');
+        $this->assertEquals(10, $paginator->perPage());
+    }
+
     public function test_staff_can_create_contract_with_documents()
     {
         $file = UploadedFile::fake()->create('kontrak_sample.pdf', 1024, 'application/pdf');

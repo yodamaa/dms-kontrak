@@ -15,8 +15,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <!-- DataTables Bootstrap 5 CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 
     <style>
         :root {
@@ -217,37 +215,6 @@
             background-color: #f8fafc;
         }
 
-        /* DataTables Custom Layout & Integration */
-        div.dataTables_wrapper div.dataTables_length select {
-            border-radius: 8px;
-            padding: 6px 12px;
-            border-color: #cbd5e1;
-            font-size: 0.85rem;
-        }
-
-        div.dataTables_wrapper div.dataTables_filter input {
-            border-radius: 8px;
-            padding: 7px 14px;
-            border-color: #cbd5e1;
-            font-size: 0.88rem;
-            outline: none;
-        }
-
-        div.dataTables_wrapper div.dataTables_filter input:focus {
-            border-color: #818cf8;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-        }
-
-        div.dataTables_wrapper div.dataTables_info {
-            font-size: 0.85rem;
-            color: #64748b;
-            padding-top: 12px;
-        }
-
-        div.dataTables_wrapper div.dataTables_paginate {
-            padding-top: 10px;
-        }
-
         .page-item.active .page-link {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
@@ -438,14 +405,9 @@
         </div>
     </footer>
 
-    <!-- jQuery 3.7.1 -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <!-- Bootstrap 5 Bundle JS -->
+<!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- DataTables JS & Bootstrap 5 Integration -->
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
-    
+
     <script>
         // Setup global AJAX CSRF Header
         document.addEventListener('DOMContentLoaded', function () {

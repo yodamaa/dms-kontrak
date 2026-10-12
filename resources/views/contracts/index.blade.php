@@ -10,12 +10,6 @@
         <p class="text-muted small mb-0">Kelola dan pantau seluruh dokumen kontrak, verifikasi dokumen, serta status persetujuannya.</p>
     </div>
     <div class="d-flex flex-wrap align-items-center gap-2">
-        <button class="btn btn-outline-secondary btn-sm rounded-3 px-3 py-2 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilterCollapse" aria-expanded="{{ request()->hasAny(['date_from', 'date_to']) ? 'true' : 'false' }}">
-            <i class="bi bi-funnel me-1"></i> Filter Tanggal
-            @if(request()->hasAny(['date_from', 'date_to']))
-                <span class="badge bg-primary ms-1">Aktif</span>
-            @endif
-        </button>
         <a href="{{ route('contracts.export.csv', request()->query()) }}" class="btn btn-outline-secondary btn-sm rounded-3 px-3 py-2 fw-semibold">
             <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV
         </a>
@@ -79,78 +73,109 @@
     </div>
 </div>
 
-<!-- Collapsible Advanced Date Range Filter -->
-<div class="collapse {{ request()->hasAny(['date_from', 'date_to']) ? 'show' : '' }} mb-4" id="advancedFilterCollapse">
-    <div class="card card-custom p-3 border">
-        <form action="{{ route('contracts.index') }}" method="GET">
-            @if(request('status'))
-                <input type="hidden" name="status" value="{{ request('status') }}">
-            @endif
-            <div class="row g-2 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label small fw-semibold text-secondary mb-1">Tanggal Aktivasi Dari</label>
-                    <input type="date" name="date_from" class="form-control form-control-sm" value="{{ request('date_from') }}">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label small fw-semibold text-secondary mb-1">Tanggal Aktivasi Sampai</label>
-                    <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request('date_to') }}">
-                </div>
-                <div class="col-md-4 d-flex gap-2">
-                    <button type="submit" class="btn btn-dark btn-sm w-100 fw-semibold">
-                        <i class="bi bi-check-lg me-1"></i> Terapkan Rentang
-                    </button>
-                    <a href="{{ route('contracts.index', request('status') ? ['status' => request('status')] : []) }}" class="btn btn-outline-secondary btn-sm fw-semibold" title="Reset Filter Tanggal">
-                        <i class="bi bi-arrow-counterclockwise"></i>
-                    </a>
-                </div>
+@php
+    // Build a sortable column header link that toggles ASC/DESC while preserving other query params.
+    $sortLink = function (string $column, string $label) use ($sortBy, $sortDir) {
+        $active = $sortBy === $column;
+        $nextDir = ($active && $sortDir === 'asc') ? 'desc' : 'asc';
+        $params = array_merge(request()->query(), ['sort_by' => $column, 'sort_dir' => $nextDir]);
+
+        if ($active) {
+            $icon = $sortDir === 'asc'
+                ? '<i class="bi bi-caret-up-fill text-primary ms-1"></i>'
+                : '<i class="bi bi-caret-down-fill text-primary ms-1"></i>';
+        } else {
+            $icon = '<i class="bi bi-arrow-down-up text-muted ms-1 opacity-50"></i>';
+        }
+
+        return '<a href="' . route('contracts.index', $params) . '" class="text-decoration-none text-reset">' . $label . $icon . '</a>';
+    };
+@endphp
+
+<!-- Filter Toolbar (server-side search, per-page, date range, sort state) -->
+<form action="{{ route('contracts.index') }}" method="GET" class="card card-custom p-3 border mb-4">
+    <input type="hidden" name="status" value="{{ request('status') }}">
+    <input type="hidden" name="sort_by" value="{{ $sortBy }}">
+    <input type="hidden" name="sort_dir" value="{{ $sortDir }}">
+
+    <div class="row g-2 align-items-center">
+        <div class="col-md-5">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted"><i class="bi bi-search"></i></span>
+                <input type="text" name="search" class="form-control" value="{{ request('search') }}" placeholder="Cari nomor kontrak...">
             </div>
-        </form>
+        </div>
+        <div class="col-6 col-md-3">
+            <select name="per_page" class="form-select form-select-sm" onchange="this.form.submit()" aria-label="Jumlah baris per halaman">
+                @foreach([10, 25, 50] as $size)
+                    <option value="{{ $size }}" {{ (int) $perPage === $size ? 'selected' : '' }}>Tampilkan {{ $size }} baris</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-6 col-md-4 d-flex gap-2 justify-content-md-end">
+            <button type="submit" class="btn btn-dark btn-sm fw-semibold rounded-3 px-3">
+                <i class="bi bi-search me-1"></i> Cari
+            </button>
+            <a href="{{ route('contracts.index') }}" class="btn btn-outline-secondary btn-sm fw-semibold rounded-3" title="Reset filter">
+                <i class="bi bi-arrow-counterclockwise"></i>
+            </a>
+            <button class="btn btn-outline-secondary btn-sm fw-semibold rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilterCollapse" aria-expanded="{{ request()->hasAny(['date_from', 'date_to']) ? 'true' : 'false' }}">
+                <i class="bi bi-funnel me-1"></i> Tanggal
+                @if(request()->hasAny(['date_from', 'date_to']))
+                    <span class="badge bg-primary ms-1">Aktif</span>
+                @endif
+            </button>
+        </div>
     </div>
-</div>
+
+    <div class="collapse {{ request()->hasAny(['date_from', 'date_to']) ? 'show' : '' }} mt-3" id="advancedFilterCollapse">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold text-secondary mb-1">Tanggal Aktivasi Dari</label>
+                <input type="date" name="date_from" class="form-control form-control-sm" value="{{ request('date_from') }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold text-secondary mb-1">Tanggal Aktivasi Sampai</label>
+                <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request('date_to') }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-dark btn-sm w-100 fw-semibold">
+                    <i class="bi bi-check-lg me-1"></i> Terapkan Rentang
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
 
 <!-- Main Table Card -->
 <div class="card card-custom border-0 shadow-sm mb-4">
     <div class="card-body p-4">
-        <!-- Quick Status Filter Pills -->
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-3 border-bottom">
-            {{-- <div class="d-flex align-items-center gap-1">
-                <span class="small text-muted fw-semibold me-2 d-none d-sm-inline">Status:</span>
-                <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold {{ !request('status') ? 'btn-dark' : 'btn-outline-secondary' }}" onclick="filterByStatus('')">
-                    Semua ({{ $stats['total'] }})
-                </button>
-                <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold {{ request('status') === 'pending' ? 'btn-warning text-dark' : 'btn-outline-secondary' }}" onclick="filterByStatus('pending')">
-                    Pending ({{ $stats['pending'] }})
-                </button>
-                <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold {{ request('status') === 'approved' ? 'btn-success text-white' : 'btn-outline-secondary' }}" onclick="filterByStatus('approved')">
-                    Disetujui ({{ $stats['approved'] }})
-                </button>
-                <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold {{ request('status') === 'rejected' ? 'btn-danger text-white' : 'btn-outline-secondary' }}" onclick="filterByStatus('rejected')">
-                    Ditolak ({{ $stats['rejected'] }})
-                </button>
-            </div>
-             --}}
             <div class="small text-muted">
                 <i class="bi bi-shield-check text-success me-1"></i> Akses: <strong>{{ auth()->user()->role === 'supervisor' ? 'Supervisor' : 'Staff' }}</strong>
             </div>
+            <div class="small text-muted">
+                Menampilkan <strong>{{ $contracts->count() }}</strong> dari <strong>{{ $contracts->total() }}</strong> kontrak
+            </div>
         </div>
 
-        <!-- Table with DataTables -->
+        <!-- Contracts Table -->
         <div class="table-responsive rounded-3 border p-2 bg-white">
-            <table class="table table-custom table-hover align-middle w-100" id="contractsTable">
+            <table class="table table-custom table-hover align-middle w-100">
                 <thead>
                     <tr>
-                        <th>No. Kontrak</th>
-                        <th>Tgl. Aktivasi</th>
-                        <th>Status</th>
+                        <th>{!! $sortLink('contract_number', 'No. Kontrak') !!}</th>
+                        <th>{!! $sortLink('activation_date', 'Tgl. Aktivasi') !!}</th>
+                        <th>{!! $sortLink('status', 'Status') !!}</th>
                         <th>Dibuat Oleh</th>
-                        <th>Tgl. Dibuat</th>
+                        <th>{!! $sortLink('created_at', 'Tgl. Dibuat') !!}</th>
                         <th>Keputusan</th>
                         <th>Dokumen</th>
-                        <th class="text-end" data-orderable="false">Aksi</th>
+                        <th class="text-end">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($contracts as $contract)
+                    @forelse($contracts as $contract)
                         <tr>
                             <td>
                                 <a href="javascript:void(0)" class="fw-bold text-primary text-decoration-none d-inline-flex align-items-center gap-1" onclick="openDetailModal({{ $contract->id }})" title="Klik untuk melihat detail lengkap">
@@ -158,7 +183,7 @@
                                     <span>{{ $contract->contract_number }}</span>
                                 </a>
                             </td>
-                            <td data-order="{{ $contract->activation_date->format('Y-m-d') }}">
+                            <td>
                                 <div class="text-dark fw-semibold">{{ $contract->activation_date->format('d M Y') }}</div>
                             </td>
                             <td>
@@ -184,11 +209,11 @@
                                     </div>
                                 </div>
                             </td>
-                            <td data-order="{{ $contract->created_at->format('Y-m-d H:i:s') }}">
+                            <td>
                                 <div>{{ $contract->created_at->format('d M Y') }}</div>
                                 <small class="text-muted">{{ $contract->created_at->format('H:i') }}</small>
                             </td>
-                            <td data-order="{{ $contract->decided_at ? $contract->decided_at->format('Y-m-d H:i:s') : '' }}">
+                            <td>
                                 @if($contract->status === 'approved')
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="avatar-initial bg-success-subtle text-success">
@@ -215,7 +240,7 @@
                                     </span>
                                 @endif
                             </td>
-                            <td data-order="{{ $contract->documents->count() }}">
+                            <td>
                                 <span class="badge bg-secondary-subtle text-secondary border">
                                     <i class="bi bi-paperclip me-1 text-primary"></i>{{ $contract->documents->count() }} file
                                 </span>
@@ -253,10 +278,23 @@
                                 </div>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                Tidak ada kontrak yang cocok dengan filter.
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
+
+        @if($contracts->hasPages())
+            <div class="d-flex justify-content-center justify-content-md-end mt-3">
+                {{ $contracts->links() }}
+            </div>
+        @endif
     </div>
 </div>
 
@@ -511,7 +549,6 @@
 @push('scripts')
 <script>
     let currentContractData = null;
-    let tableInstance = null;
 
     // Filter by Status helper
     function filterByStatus(status) {
@@ -523,39 +560,6 @@
         }
         window.location.href = url.toString();
     }
-
-    // Initialize DataTable
-    $(document).ready(function() {
-        if ($('#contractsTable').length) {
-            tableInstance = $('#contractsTable').DataTable({
-                language: {
-                    search: "",
-                    searchPlaceholder: "Cari cepat di tabel (no. kontrak, nama, tgl)...",
-                    lengthMenu: "Tampilkan _MENU_ baris",
-                    info: "Menampilkan _START_ s.d _END_ dari _TOTAL_ data",
-                    infoEmpty: "Menampilkan 0 data",
-                    infoFiltered: "(disaring dari _MAX_ data)",
-                    zeroRecords: "<div class='text-center py-4 text-muted'><i class='bi bi-inbox fs-2 d-block mb-2'></i>Tidak ada data yang cocok dengan pencarian</div>",
-                    paginate: {
-                        first: '<i class="bi bi-chevron-double-left"></i>',
-                        previous: '<i class="bi bi-chevron-left"></i>',
-                        next: '<i class="bi bi-chevron-right"></i>',
-                        last: '<i class="bi bi-chevron-double-right"></i>'
-                    }
-                },
-                order: [[4, 'desc']], // Default sort by Tanggal Dibuat (col index 4) desc
-                columnDefs: [
-                    { targets: 7, orderable: false, searchable: false } // Aksi column
-                ],
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-                responsive: true,
-                dom: "<'row g-3 align-items-center mb-3'<'col-sm-6'l><'col-sm-6 text-sm-end'f>>" +
-                     "<'row'<'col-12'tr>>" +
-                     "<'row g-3 align-items-center mt-3'<'col-sm-5'i><'col-sm-7 text-sm-end'p>>"
-            });
-        }
-    });
 
     // Open Detail Modal via AJAX
     function openDetailModal(contractId) {

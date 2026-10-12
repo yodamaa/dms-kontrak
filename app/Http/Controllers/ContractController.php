@@ -57,9 +57,13 @@ class ContractController extends Controller
 
         // Whitelist pagination per_page
         $allowedPerPage = [10, 25, 50];
-        $contracts = $query->get();
+        $perPage = in_array((int) $request->get('per_page'), $allowedPerPage, true)
+            ? (int) $request->get('per_page')
+            : 10;
 
-        return view('contracts.index', compact('contracts', 'stats', 'sortBy', 'sortDir'));
+        $contracts = $query->paginate($perPage)->appends($request->query());
+
+        return view('contracts.index', compact('contracts', 'stats', 'sortBy', 'sortDir', 'perPage'));
     }
 
     /**
