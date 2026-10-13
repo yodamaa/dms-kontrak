@@ -154,9 +154,7 @@
             <div class="small text-muted">
                 <i class="bi bi-shield-check text-success me-1"></i> Akses: <strong>{{ auth()->user()->role === 'supervisor' ? 'Supervisor' : 'Staff' }}</strong>
             </div>
-            <div class="small text-muted">
-                Menampilkan <strong>{{ $contracts->count() }}</strong> dari <strong>{{ $contracts->total() }}</strong> kontrak
-            </div>
+           
         </div>
 
         <!-- Contracts Table -->
@@ -295,6 +293,10 @@
                 {{ $contracts->links() }}
             </div>
         @endif
+
+        <div class="small text-muted mt-2">
+            Menampilkan <strong>{{ $contracts->count() }}</strong> dari <strong>{{ $contracts->total() }}</strong> kontrak
+        </div>
     </div>
 </div>
 

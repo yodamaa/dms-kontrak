@@ -16,6 +16,9 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="{{ asset('vendor/flasher/flasher-toastr.min.css') }}">
+
     <style>
         :root {
             --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -369,31 +372,6 @@
     <!-- Main Content Area -->
     <main class="py-4">
         <div class="container-fluid px-lg-4">
-            <!-- Flash Messages -->
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm border-0 d-flex align-items-center" role="alert">
-                    <i class="bi bi-check-circle-fill fs-5 me-2 text-success"></i>
-                    <div>{{ session('success') }}</div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm border-0 d-flex align-items-center" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-danger"></i>
-                    <div>{{ session('error') }}</div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
-            @if(session('info'))
-                <div class="alert alert-info alert-dismissible fade show rounded-3 shadow-sm border-0 d-flex align-items-center" role="alert">
-                    <i class="bi bi-info-circle-fill fs-5 me-2 text-info"></i>
-                    <div>{{ session('info') }}</div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
             @yield('content')
         </div>
     </main>
@@ -407,6 +385,9 @@
 
 <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Toastr JS -->
+    <script src="{{ asset('vendor/flasher/flasher-toastr.min.js') }}"></script>
 
     <script>
         // Setup global AJAX CSRF Header
